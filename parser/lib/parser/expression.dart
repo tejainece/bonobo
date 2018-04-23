@@ -103,8 +103,7 @@ class ExpressionParser {
       case TokenType.lCurly:
         return _parseMap();
       case TokenType.number:
-        state.consume();
-        return new NumberLiteralContext(token.span, []);
+        return parseNumberLiteral();
       case TokenType.string:
         state.consume();
         return new StringLiteralContext(token.span, []);
@@ -113,6 +112,19 @@ class ExpressionParser {
       default:
         return null;
     }
+  }
+
+  NumberLiteralContext parseNumberLiteral() {
+    if (state.peek()?.type == TokenType.number)
+      return new NumberLiteralContext(state.consume().span, []);
+    return _parseHex();
+  }
+
+  NumberLiteralContext _parseHex() {
+    if (state.peek()?.type == TokenType.hex) {
+      return new HexLiteralContext(state.consume().span, []);
+    }
+    return null;
   }
 
   ExpressionContext _parseParenExp() {
@@ -141,7 +153,7 @@ class ExpressionParser {
     return exp; // TODO span the parenthesis
   }
 
-  ObjectLiteralContext _parseTuple(Token startTok, ExpressionContext first) {
+  TupleExpressionContext _parseTuple(Token startTok, ExpressionContext first) {
     state.consume();
 
     final exps = <ExpressionContext>[first];
@@ -154,8 +166,8 @@ class ExpressionParser {
     Token rParen = state.nextToken(TokenType.rParen);
     if (rParen == null) return null;
 
-    return new ObjectLiteralContext(
-        startTok.span.expand(rParen.span), [], exps);
+    return new TupleExpressionContext(
+        exps, startTok.span.expand(rParen.span), []);
   }
 
   ArrayLiteralContext _parseList() {
@@ -174,7 +186,7 @@ class ExpressionParser {
     return new ArrayLiteralContext(lSq.span.expand(rParen.span), [], exps);
   }
 
-  MapLiteralContext _parseMap() {
+  ObjectLiteralContext _parseMap() {
     Token lCurly = state.nextToken(TokenType.lCurly);
 
     final keys = <ExpressionContext>[];
@@ -192,7 +204,7 @@ class ExpressionParser {
     Token rCurly = state.nextToken(TokenType.rCurly);
     if (rCurly == null) return null;
 
-    return new MapLiteralContext(
+    return new ObjectLiteralContext(
         lCurly.span.expand(rCurly.span), [], keys, values);
   }
 
@@ -299,9 +311,11 @@ class ExpressionParser {
         id.span.expand(parts.last.span), [], id, parts);
   }
 
-  NumberLiteralContext parseNumberLiteral() {
-    if (state.peek()?.type == TokenType.number)
-      return new NumberLiteralContext(state.consume().span, []);
-    return null;
+  CallExpressionContext _callExpression(
+      IdentifierContext target, CallIdChainExpPartCtx chain) {
+    var tuple =
+        new TupleExpressionContext(chain.args, chain.span, chain.comments);
+    return new CallExpressionContext(
+        target, tuple, target.span.expand(tuple.span), target.comments);
   }
 }

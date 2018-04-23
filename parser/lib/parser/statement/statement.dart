@@ -7,7 +7,7 @@ class StatementParser {
 
   StatementContext parse() {
     List<Comment> comments = state.parseComments();
-    return varDeclarationParser.parse(comments) ??
+    return variableDeclarationParser.parse() ??
         parseExpressionStatement() ??
         parseReturnStatement(comments);
   }
@@ -37,28 +37,20 @@ class StatementParser {
     Token start = state.nextToken(TokenType.ret);
     if (start == null) return null;
 
-    final exps = <ExpressionContext>[];
+    var exp = state.parseExpression();
 
-    for (ExpressionContext exp = state.parseExpression();
-        exp != null;
-        exp = state.parseExpression()) {
-      exps.add(exp);
-      if (state.nextToken(TokenType.comma) == null) break;
+    if (exp == null) {
+      state.errors.add(new BonoboError(BonoboErrorSeverity.error,
+          "Missing expression after keyword 'ret'.", start.span));
+      return null;
     }
 
-    if (exps.length == 0)
-      return new ReturnStatementContext(start.span, comments, null);
-
-    FileSpan span = start.span.expand(exps.last.span);
-
     return new ReturnStatementContext(
-        span,
-        comments,
-        new ObjectLiteralContext(
-            exps.first.span.expand(exps.last.span), [], exps));
+        start.span.expand(exp.span), comments, exp);
   }
 
-  VarDeclarationParser _varDeclParser;
-  VarDeclarationParser get varDeclarationParser =>
-      _varDeclParser ??= new VarDeclarationParser(state);
+  VariableDeclarationParser _varDeclParser;
+
+  VariableDeclarationParser get variableDeclarationParser =>
+      _varDeclParser ??= new VariableDeclarationParser(state);
 }

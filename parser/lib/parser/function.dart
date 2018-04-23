@@ -63,12 +63,10 @@ class FunctionParser {
     TypeContext returnType;
     if (peek.type == TokenType.colon) {
       state.consume();
-      returnType = state.parseType();
+      returnType = state.typeParser.parse(comments: state.parseComments());
       if (returnType == null) return null;
       span = span.expand(returnType.span);
     }
-
-    if (parameterList == null && returnType == null) return null;
 
     return new FunctionSignatureContext(parameterList, returnType, span, []);
   }
@@ -110,7 +108,7 @@ class FunctionParser {
 
     if (colon == null) return new ParameterContext(id, null, span, []);
 
-    TypeContext type = state.parseType();
+    TypeContext type = state.typeParser.parse(comments: state.parseComments());
     if (type == null) {
       state.errors.add(new BonoboError(
           BonoboErrorSeverity.error, "Missing type after ':'.", colon.span));
@@ -125,7 +123,7 @@ class FunctionParser {
   FunctionBodyContext parseBody() {
     Token decider = state.peek();
 
-    if (decider.type == TokenType.arrow) return parseSameLineBody();
+    if (decider.type == TokenType.arrow) return parseLambdaBody();
     if (decider.type == TokenType.lCurly) return parseBlockFunctionBody();
 
     state.errors.add(new BonoboError(
@@ -133,30 +131,19 @@ class FunctionParser {
     return null;
   }
 
-  SameLineFunctionBodyContext parseSameLineBody() {
+  LambdaFunctionBodyContext parseLambdaBody() {
     Token arrow = state.nextToken(TokenType.arrow);
     if (arrow == null) return null;
 
-    final exps = <ExpressionContext>[];
+    var exp = state.parseExpression();
 
-    for (ExpressionContext exp = state.parseExpression();
-        exp != null;
-        exp = state.parseExpression()) {
-      exps.add(exp);
-      if (state.nextToken(TokenType.comma) == null) break;
-    }
-
-    if (exps.length == 0) {
+    if (exp == null) {
       state.errors.add(new BonoboError(BonoboErrorSeverity.error,
           "Missing expression after '=>'.", arrow.span));
       return null;
     }
 
-    return new SameLineFunctionBodyContext(
-        arrow.span.expand(exps.first.span),
-        [],
-        new ObjectLiteralContext(
-            exps.first.span.expand(exps.last.span), [], exps));
+    return new LambdaFunctionBodyContext(arrow.span.expand(exp.span), [], exp);
   }
 
   BlockFunctionBodyContext parseBlockFunctionBody() {

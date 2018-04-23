@@ -12,6 +12,116 @@ class NamedTypeContext extends AstNode implements TypeContext {
 
   @override
   T accept<T>(BonoboAstVisitor<T> visitor) => visitor.visitNamedType(this);
+  
+}
+
+class TupleTypeContext extends TypeContext {
+  final List<TypeContext> items;
+
+  TupleTypeContext(this.items, FileSpan span, List<Comment> comments)
+      : super(span, comments);
+
+  @override
+  T accept<T>(BonoboAstVisitor<T> visitor) => visitor.visitTupleType(this);
+
+  @override
+  String toString() {
+    return items.join(', ');
+  }
+}
+
+class TypedefContext extends AstNode {
+  final SimpleIdentifierContext name;
+  final TypeContext type;
+
+  TypedefContext(this.name, this.type, FileSpan span, List<Comment> comments)
+      : super(span, comments);
+
+  @override
+  T accept<T>(BonoboAstVisitor<T> visitor) => visitor.visitTypedef(this);
+}
+
+class ParenthesizedTypeContext extends TypeContext {
+  final TypeContext innermost;
+
+  ParenthesizedTypeContext(
+      this.innermost, FileSpan span, List<Comment> comments)
+      : super(span, comments);
+
+  @override
+  T accept<T>(BonoboAstVisitor<T> visitor) => innermost.accept(visitor);
+
+  @override
+  String toString() {
+    return '($innermost)';
+  }
+}
+
+class StructTypeContext extends TypeContext {
+  final List<StructFieldContext> fields;
+
+  StructTypeContext(this.fields, FileSpan span, List<Comment> comments)
+      : super(span, comments);
+
+  @override
+  T accept<T>(BonoboAstVisitor<T> visitor) => visitor.visitStructType(this);
+}
+
+class StructFieldContext extends AstNode {
+  final SimpleIdentifierContext name;
+  final TypeContext type;
+
+  StructFieldContext(
+      this.name, this.type, FileSpan span, List<Comment> comments)
+      : super(span, comments);
+
+  @override
+  T accept<T>(BonoboAstVisitor<T> visitor) => visitor.visitStructField(this);
+}
+
+class EnumTypeContext extends TypeContext {
+  final List<EnumValueContext> values;
+
+  EnumTypeContext(this.values, FileSpan span, List<Comment> comments)
+      : super(span, comments);
+
+  @override
+  T accept<T>(BonoboAstVisitor<T> visitor) => visitor.visitEnumType(this);
+}
+
+class EnumValueContext extends AstNode {
+  final SimpleIdentifierContext name;
+  final NumberLiteralContext index;
+
+  EnumValueContext(this.name, this.index, FileSpan span, List<Comment> comments)
+      : super(span, comments);
+
+  @override
+  T accept<T>(BonoboAstVisitor<T> visitor) => visitor.visitEnumValue(this);
+}
+
+class ClassDeclarationContext extends TypeContext {
+  final SimpleIdentifierContext name;
+
+  final bool isPriv;
+
+  // TODO List<Generic> generics;
+
+  // TODO List<Class> interfaces;
+
+  // TODO List<Mixin> mixes;
+
+  final List<VariableDeclarationStatementContext> fields;
+
+  final List<FunctionContext> methods;
+
+  ClassDeclarationContext(FileSpan span, this.name,
+      {this.fields: const [], this.methods: const [], this.isPriv: false})
+      : super(span, []);
+
+  @override
+  T accept<T>(BonoboAstVisitor<T> visitor) =>
+      visitor.visitClassDeclaration(this);
 
   String toString() {
     var sb = new StringBuffer();

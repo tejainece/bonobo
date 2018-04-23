@@ -68,10 +68,10 @@ class BlockFunctionBodyContext extends FunctionBodyContext {
   String toString() => block.toString();
 }
 
-class SameLineFunctionBodyContext extends FunctionBodyContext {
+class LambdaFunctionBodyContext extends FunctionBodyContext {
   final ExpressionContext expression;
 
-  SameLineFunctionBodyContext(
+  LambdaFunctionBodyContext(
       FileSpan span, List<Comment> comments, this.expression)
       : super(span, comments);
 
@@ -81,7 +81,7 @@ class SameLineFunctionBodyContext extends FunctionBodyContext {
 
   @override
   T accept<T>(BonoboAstVisitor<T> visitor) =>
-      visitor.visitSameLineFunctionBody(this);
+      visitor.visitLambdaFunctionBody(this);
 
   String toString() {
     return ' => ' + expression.toString();

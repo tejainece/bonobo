@@ -50,8 +50,26 @@ class TypeDeclarationParser {
 
     peek = state.nextToken(TokenType.lParen);
     if (peek != null) {
+<<<<<<< HEAD
+      switch (state.peek().type) {
+        case TokenType.let:
+        case TokenType.var_:
+        case TokenType.const_:
+          var v = state.statementParser.variableDeclarationParser.parse();
+          if (v == null) return null;
+          fields.add(v);
+          break;
+        default:
+          var v = state.statementParser.variableDeclarationParser
+              .parse(mut: VariableMutability.var_);
+          if (v == null) return null;
+          fields.add(v);
+          break;
+      }
+=======
       VariableDeclarationStatementContext v = parseDataClass();
       if (v == null) return null;
+>>>>>>> a74882f7d754f12d199f21700d9b663870b2711d
       peek = state.nextToken(TokenType.rParen);
       if (peek == null) return null;
       fields.add(v);
@@ -79,9 +97,14 @@ class TypeDeclarationParser {
             methods.add(f);
             break;
           default:
+<<<<<<< HEAD
+            var v = state.statementParser.variableDeclarationParser
+                .parse(mut: VariableMutability.var_);
+=======
             VariableDeclarationStatementContext v = state
                 .statementParser.varDeclarationParser
                 .parse([], mut: VariableMutability.var_);
+>>>>>>> a74882f7d754f12d199f21700d9b663870b2711d
             if (v == null) return null;
             fields.add(v);
             break;

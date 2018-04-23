@@ -1,16 +1,17 @@
 part of '../parser.dart';
 
-class VarDeclarationParser {
+class VariableDeclarationParser {
   final Parser state;
 
-  VarDeclarationParser(this.state);
+  VariableDeclarationParser(this.state);
 
-  VariableDeclarationStatementContext parse(List<Comment> comments,
-      {VariableMutability mut}) {
+  VariableDeclarationStatementContext parse({VariableMutability mut}) {
+    List<Comment> comments = state.parseComments();
+
     Token what;
     if (mut == null) {
-      what =
-          state.nextIfOneOf([TokenType.const_, TokenType.let, TokenType.var_]);
+      what = state.next(
+          [TokenType.const_, TokenType.let, TokenType.var_])?.removeFirst();
       if (what == null) return null;
       mut = what.type == TokenType.const_
           ? VariableMutability.const_
@@ -36,8 +37,24 @@ class VarDeclarationParser {
       return null;
     }
 
+    var declarationSpan = what.span.expand(declarations.last.span);
+    var context = <StatementContext>[];
+    var statement = state.parseStatement();
+    var span = declarationSpan;
+
+    while (statement != null) {
+      span = span.expand(statement.span);
+      context.add(statement);
+      statement = state.parseStatement();
+    }
+
     return new VariableDeclarationStatementContext(
-        what.span.expand(declarations.last.span), comments, mut, declarations);
+      declarations,
+      context,
+      declarationSpan,
+      span,
+      comments,
+    );
   }
 
   VariableDeclarationContext parseADecl(VariableMutability mut) {
@@ -50,7 +67,8 @@ class VarDeclarationParser {
     TypeContext type;
     if (state.peek().type == TokenType.colon) {
       state.consume();
-      type = state.parseType();
+      type = state.typeParser
+          .parse(comments: state.parseComments(), ignoreComma: true);
       // TODO error message
       if (type == null) return null;
       lastSpan = type.span;
@@ -77,6 +95,6 @@ class VarDeclarationParser {
     }
 
     return new VariableDeclarationContext(
-        name.span.expand(lastSpan), [], mut, name, type, expression);
+        name.span.expand(lastSpan), name, type, expression, mut, []);
   }
 }
