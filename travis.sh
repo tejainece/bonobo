@@ -8,8 +8,12 @@ function run_tests() {
   cd $DIRNAME
 }
 
-# run_tests ast
-run_tests scanner
-run_tests parser
-# run_tests bonobo
+run_tests bonobo
 
+# Build everything
+cd "$DIRNAME/bvm"
+cmake .
+cmake --build . --target all -- -j $CORES
+
+# Run all the tests
+"$DIRNAME/bvm/test/jit/return_int"

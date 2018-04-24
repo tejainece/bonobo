@@ -36,7 +36,7 @@ class ExploreCommand extends Command {
       if (errors.isNotEmpty) continue;
 
       var parser = new Parser(scanner);
-      var parsed = parser.parseFunction() ??
+      var parsed = parser.functionParser.parse() ??
           parser.statementParser.variableDeclarationParser.parse() ??
           parser.statementParser.parseExpressionStatement() ??
           parser.parseSimpleIdentifier();
@@ -78,10 +78,9 @@ class ExploreCommand extends Command {
       if (parsed is VariableDeclarationStatementContext) {
         for (var decl in parsed.declarations) {
           var expr = await analyzer.expressionAnalyzer
-              .resolve(decl.initializer, null, analyzer.module.scope);
+              .resolve(decl.expression, null, analyzer.module.scope);
           analyzer.module.scope.create(decl.name.name,
-              value: expr,
-              constant: decl.mutability >= VariableMutability.final_);
+              value: expr, constant: parsed.isImmutable);
         }
       } else if (parsed is ExpressionContext) {
         var expr = await analyzer.expressionAnalyzer
@@ -140,7 +139,7 @@ class _Repl {
     var ctrl = new StreamController();
     submitted = false;
     scheduleMicrotask(() async {
-      bool newline = true;
+      //bool newline = true;
 
       //if (false)
       stdin
@@ -162,7 +161,7 @@ class _Repl {
           index++;
           if (index >= history.length) history.add(new StringBuffer());
           stdout.writeln();
-          newline = true;
+          //newline = true;
         } else {
           ctrl.add(line.substring(0, line.length - 1));
         }

@@ -8,7 +8,7 @@ class TypeAnalyzer {
   Future<BonoboType> resolve(TypeContext ctx) async {
     if (ctx == null)
       return BonoboType.Root;
-    else if (ctx is SimpleIdentifierTypeContext) {
+    else if (ctx is NamedTypeContext) {
       BonoboModule m = analyzer.module;
 
       do {
@@ -42,6 +42,8 @@ class TypeAnalyzer {
       var parameters = await Future.wait(ctx.parameters.map(resolve));
       var returnType = await resolve(ctx.returnType);
       return new BonoboFunctionType(parameters, returnType);
+    } else if (ctx is ParenthesizedTypeContext) {
+      return await resolve(ctx.innermost);
     } else {
       analyzer.errors.add(new BonoboError(BonoboErrorSeverity.warning,
           'Unsupported type: ${ctx.runtimeType}', ctx.span));

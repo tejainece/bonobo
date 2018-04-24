@@ -1,7 +1,6 @@
 library bonobo.src.commands;
 
 import 'dart:async';
-import 'dart:convert';
 import 'dart:io' hide Directory, File, FileMode;
 import 'dart:io' as io show Directory, File;
 import 'package:args/command_runner.dart';
@@ -22,14 +21,13 @@ import 'package:file/memory.dart';
 import 'package:logging/logging.dart';
 import 'package:path/path.dart' as p;
 import 'package:source_span/source_span.dart';
-import 'package:symbol_table/symbol_table.dart';
 import 'package:tuple/tuple.dart';
-import 'package:bonobo/bonobo.dart';
+import 'package:bonobo/analysis/analysis.dart';
+import 'package:bonobo/compiler/compiler.dart';
 import 'package:c_builder/c_builder.dart' as c;
-import 'package:source_span/source_span.dart';
-import 'package:ast/ast.dart';
-import 'package:scanner/scanner.dart';
-import 'package:parser/parser.dart';
+import '../ast/ast.dart';
+import '../scanner/scanner.dart';
+import '../parser/parser.dart';
 import '../language_server/language_server.dart';
 
 part 'bonobo_command.dart';

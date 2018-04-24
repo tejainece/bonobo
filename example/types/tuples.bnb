@@ -1,5 +1,16 @@
-type Point (x: Int, y: Int) {
-  fn length: Double => x + y
-}
+// Use a tuple to define a type composed of an ordered series of types.
+//
+// Tuples are intended for *ordered* series.
+type Point = (Int, Int)
 
-type Rect (let left: Int, top: Int, width: Int, height: Int)
+// The parentheses are unnecessary.
+type StringAndLength = String, Int
+
+// For an un-ordered composite type, stick to a struct type:
+type Rectangle {
+  location: Point
+  left: Int
+  top: Int
+  width: Int
+  height: Int
+}

@@ -4,8 +4,8 @@ import 'package:source_span/source_span.dart';
 import 'package:symbol_table/symbol_table.dart';
 import 'package:bonobo/bonobo.dart';
 import 'package:bonobo/analysis/analysis.dart';
-import 'package:scanner/scanner.dart';
-import 'package:ast/ast.dart';
+import '../scanner/scanner.dart';
+import '../ast/ast.dart';
 
 final c.Expression String_new = new c.Expression('String_new');
 
@@ -128,9 +128,9 @@ class BonoboCCompiler {
         // Declare all variables
         for (var decl in stmt.declarations) {
           var value = await analyzer.expressionAnalyzer
-              .resolve(decl.initializer, function, scope);
+              .resolve(decl.expression, function, scope);
           var cExpression =
-              await compileExpression(decl.initializer, function, out, scope);
+              await compileExpression(decl.expression, function, out, scope);
           var type = await compileType(value.type);
           out.add(new c.Field(type, decl.name.name, cExpression));
         }
